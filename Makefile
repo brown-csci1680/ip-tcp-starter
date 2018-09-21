@@ -1,9 +1,9 @@
-CC = gcc -O3
+CC = gcc
 CFLAGS = -g -Wall -Wextra -Werror -D_REENTRANT -DCOLOR \
 				 -D__BSD_VISIBLE -DREADLINE -Isupport -I.
 LDFLAGS = -lpthread -lreadline
 
-SRCS = node.c support/dbg.c support/parselinks.c
+SRCS = node.c dbg.c parselinks.c
 
 all: node 
 
