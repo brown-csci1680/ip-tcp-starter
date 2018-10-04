@@ -1,2 +1,2 @@
-localhost:17003
-localhost:17002 10.0.0.80 10.0.0.79
+localhost 17003
+localhost 17002 10.0.0.80 10.0.0.79

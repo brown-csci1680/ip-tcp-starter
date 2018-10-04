@@ -4,3 +4,6 @@
 *.o
 
 .vagrant/
+
+.DS_Store
+
