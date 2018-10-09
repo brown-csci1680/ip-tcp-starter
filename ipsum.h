@@ -11,13 +11,13 @@ static inline int ip_sum(char* packet, int len) {
   long sum = 0;
   uint16_t odd_byte = 0;
 
-  while (n > 1) {
+  while (len > 1) {
     sum += *p++;
-    n -= 2;
+    len -= 2;
   }
 
   /* mop up an odd byte, if necessary */
-  if (n == 1) {
+  if (len == 1) {
     *(uint8_t*)(&odd_byte) = *(uint8_t*)p;
     sum += odd_byte;
   }
