@@ -119,6 +119,7 @@ We think the following tmux commands are most useful for this project:
  - `Ctrl+b` `o`:  Cycle between panes
  - `Ctrl+b` `space`:  Cycle various pane layouts
  - `Ctrl+b` `<number key>`:  Switch directly to pane number N
+ - `Ctrl+b` `z`:  "Zoom in" on one pane, making it fullscreen (`Ctrl+b` `z` to go back)
  - `Ctrl+b` `:`, then type `kill session` `<Enter>`:  Kill the session (and all nodes)
  - `Ctrl+b` `d`:  Detach the session (but leave it running), reattach
  with `tmux attach`
