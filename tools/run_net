@@ -1,0 +1,102 @@
+#!/bin/bash
+# run_net:  Run a virtual network for IP/TCP
+# See run_net --help for usage and options.
+
+set -eu
+
+# Shell that runs with each node (feel free to change)
+START_SHELL=/bin/bash
+
+# Create tmux sessions with this prefix
+SESSION_PREFIX="vnet-"
+
+kill_open_sessions()
+{
+    echo "Clearing any open sessions..."
+
+    vnet_sessions=$(tmux list-sessions | grep "${SESSION_PREFIX}" | awk '{ print $1; }' | sed 's/\://g')
+    for session in ${vnet_sessions}; do
+	echo "Killing session ${session}"
+	tmux kill-session -t ${session}
+    done
+}
+
+display_help()
+{
+    echo "Usage:  $0 [OPTION...] <node binary> <dir with lnx files> [NODE ARGS...]"
+    echo "  --clean  Terminate any open virtual network sesions before starting"
+    echo "  --help   Display this help"
+    echo ""
+    echo "[NODE ARGS] will be passed to each node program, eg."
+    echo "$0 node AB --debug => ./node --debug AB/A.lnx"
+}
+
+main()
+{
+    if [[ $# -lt 2 ]]; then
+	display_help
+	exit 1
+    fi
+
+    clean=0
+    
+    POSITIONAL=()
+    while [[ $# -gt 0 ]]; do
+	key=$1
+	case $key in
+	    --clean)
+		clean=1
+		shift
+		;;
+	    --help)
+		display_help
+		exit 1
+		;;
+	    *)
+		POSITIONAL+=("$1")
+		shift
+	esac
+    done
+    set -- "${POSITIONAL[@]}"
+    
+    node=$1
+    net_dir=$2
+    shift
+    shift
+    extra_args=$@
+
+    if [[ ${clean} == 1 ]]; then
+	kill_open_sessions
+    fi
+    
+    session="${SESSION_PREFIX}$(basename $(realpath ${net_dir}))"
+    
+    LNX_FILES=( ${net_dir}/*.lnx )
+    net_first="${LNX_FILES[0]}"
+    net_others="${LNX_FILES[@]:1}"
+
+    # Create a tmux session with the first lnx file
+    # Run each pane as the node + a shell after so that user can press
+    # Ctrl+C and get a shell, rather than killing the pane
+    tmux new-session -s ${session} -d "${node} ${extra_args} ${net_first}; ${START_SHELL}"
+    tmux select-pane -T $(basename ${net_first} .lnx)
+
+    # Set session options
+    tmux set-option -s pane-border-status top
+    tmux set-option -s pane-border-format "#{pane_index}: #{pane_title}"
+
+    # Now that the session exists, create all the other panes
+    for f in ${net_others}; do
+	tmux split-window "${node} ${extra_args} ${f}; ${START_SHELL}"
+	tmux select-pane -T $(basename ${f} .lnx)
+
+	# Even out the layout (use tiled to accommodate the maximum
+	# number of panes)
+	tmux select-layout tiled
+    done
+
+    # Finally, attach to the session
+    tmux attach-session -t ${session}
+}
+
+main $@
